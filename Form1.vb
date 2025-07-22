@@ -109,7 +109,7 @@ Public Class Form1
     Sub GetFormConfig() ' Sets the form defaults
 
         Dim Record_Field() As String = Nothing
-        Dim FolderPath As String = ""
+        Dim FolderPath As String '=""
 
         CheckFolderExists(FormConfigPath)
         Dim fileCount As Integer = Directory.GetFiles(FormConfigPath, "Config.sys").Length
@@ -181,7 +181,7 @@ Public Class Form1
         Dim itemdetails As String
         Dim Record_Field()
         Dim Auto_Save As String = ""
-        Dim i As Integer = 0
+        Dim i As Integer ' = 0
 
         If SheetConfigPath = "" Then Exit Sub
         Try
@@ -272,7 +272,7 @@ Public Class Form1
     'Form housekeeping routines
     'ZZZZZZZZZZZZZZZZZZZZZZZZZZZ
     Public Sub CheckFolderExists(FName As String)
-        Dim Letter As String = ""
+        Dim Letter As String ' = ""
         If FName = "" Then Exit Sub
         For i = Len(FName) To 0 Step -1
             Letter = Mid(FName, i, 1)
@@ -305,7 +305,7 @@ Public Class Form1
 
     End Sub
     Sub SaveSheetConfig(sheetconfigpath As String)
-        Dim fpath As String = ""
+        Dim fpath As String ' = ""
         Dim ConfigString As String
         If sheetconfigpath = "" Then Exit Sub
         'Write the Sheet Configuration to the Sheet Config folder
@@ -328,7 +328,7 @@ Public Class Form1
     End Sub
 
     Public Sub GetFilePaths(fPath As String)
-        Dim response As Integer = 0
+        ' Dim response As Integer ' = 0
 
         'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         'Set up the Working folders etc
@@ -375,9 +375,9 @@ Public Class Form1
 
     Public Sub GetStockListPath(sender As Object, e As EventArgs) Handles AssessmentToolStripMenuItem.Click
         ' In this routine we choose the Department we wish to Assess
-        Dim response As Integer = 0
-        Dim fPath As String = ""
-        Dim NrFiles As Integer = 0
+        Dim response As Integer ' = 0
+        Dim fPath As String ' = ""
+        Dim NrFiles As Integer ' = 0
 
 
         DoAssessment = False ' cancel these flags
@@ -717,8 +717,8 @@ CurrentAssessment:
     End Sub
 
     Public Sub SaveStockList(S_ender As Object, StocklistPath As String)
-        Dim i As Integer = 0
-        Dim f As Integer = 0
+        ' Dim i As Integer ' = 0
+        ' Dim f As Integer ' = 0
         Dim fPath As String = StocklistPath
         Dim todayDate As String = DateTime.Now.ToString("dd-MM-yyyy") ' Format: dd-MM-yyyy_HH-mm 
 
@@ -756,7 +756,7 @@ CurrentAssessment:
                     If fP <> 0 Then
                         fPath = Mid(fPath, 1, fP - 1) & ".csv"
                     Else
-                        fPath = fPath & ".csv"
+                        fPath += ".csv"
                     End If
                     SaveSheet(fPath)
                     Exit Sub
@@ -915,8 +915,8 @@ CurrentAssessment:
     Private Sub ColourCellBlock(sender As Object, e As DrawListViewSubItemEventArgs) Handles LV_Stock.DrawSubItem
         Dim row As Integer = e.ItemIndex
         Dim col As Integer = e.ColumnIndex
-        Dim blockStartCol As Integer = 0
-        Dim blockEndCol As Integer = 0
+        Dim blockStartCol As Integer ' = 0
+        Dim blockEndCol As Integer ' = 0
 
         ' Define the block of cells to color
         Dim blockStartRow As Integer = 0
@@ -1136,7 +1136,6 @@ CurrentAssessment:
         End If
     End Sub
 
-
     'Turn the NumLock on if it isn't already on
 
     <DllImport("user32.dll")>
@@ -1177,21 +1176,18 @@ CurrentAssessment:
     Private Sub Editor_KeyDown(sender As Object, e As KeyEventArgs)
 
         Dim kCode As Integer = e.KeyCode
-        Dim Txt = (LV_Stock.Items(currentRow).SubItems(currentCol).Text)
-        Dim k As Integer = 0
+        ' Dim Txt = (LV_Stock.Items(currentRow).SubItems(currentCol).Text)
 
         If kCode = 8 Then Exit Sub 'Back key
 
         If DoAssessment = True Then
-            'numbers keys on top row
-            If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or kCode > 105 AndAlso kCode <> 110 Then ' Can only accept numbers and  and .
+            'numbers keys on top row and keypad
+            If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or kCode > 105 AndAlso kCode <> 110 AndAlso kCode <> 190 Then ' Can only accept numbers and  and .
                 e.SuppressKeyPress = True
-                ' ElseIf kCode < 96 And kCode > 110 Then 'Keys on number keypad
-                ' e.SuppressKeyPress = True
             End If
         ElseIf EditStockSheet = True Then
             If currentCol > 1 Then 'First 2 columns are AlphaNumeric
-                If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or kCode > 105 AndAlso kCode <> 110 Then ' Can only accept numbers and  and .
+                If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or kCode > 105 AndAlso kCode <> 110 AndAlso kCode <> 190 Then ' Can only accept numbers and  and .
                     e.SuppressKeyPress = True
                 End If
             End If
@@ -1324,7 +1320,7 @@ CurrentAssessment:
         EditStockSheet = False
 
         NumberOfRows = LV_Stock.Items.Count
-        Dim i As Integer = 0
+        Dim i As Integer ' = 0
         For i = 0 To NumberOfRows - 1
             For p = 0 To 7
                 LV_Stock.Items(i).SubItems(p).Text = LV_Stock.Items(i).SubItems(p).Text ' Triggers a sheet redraw
@@ -1348,7 +1344,7 @@ CurrentAssessment:
         If CurrentPath <> "" Then
             Edit_Assessment = True
         End If
-        Dim i As Integer = 0
+        ' Dim i As Integer' = 0
         For i = 0 To LV_Stock.Items.Count - 1
             For p = 0 To 7
                 LV_Stock.Items(i).SubItems(p).Text = LV_Stock.Items(i).SubItems(p).Text ' Triggers a sheet redraw
