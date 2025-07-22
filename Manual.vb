@@ -17,6 +17,11 @@ Public Class Manual
     ReadOnly ColourGreen = System.Drawing.Color.LawnGreen
     ReadOnly ColourAmber = System.Drawing.Color.Orange
     ReadOnly ColourWhite = System.Drawing.Color.White
+
+    'Set up Timer to handle single and double clicks
+    Private clickTimer As New Timer()
+    Private clickedItem As RichTextBox = Nothing
+
     Public Sub Manual_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         LoadManual()
         TextBox.ReadOnly = True
@@ -24,6 +29,14 @@ Public Class Manual
 
         Lst_FontStyle.Visible = False
         Lst_FontSize.Visible = False
+
+        ' Set up the timer slightly above system double-click time
+        clickTimer.Interval = SystemInformation.DoubleClickTime + 10
+        ' AddHandler clickTimer.Tick, AddressOf TextBox_DoubleClick
+        AddHandler clickTimer.Tick, AddressOf OnSingleClickConfirmed
+        ' Hook mouse events
+        AddHandler TextBox.MouseClick, AddressOf TextBox_MouseClick
+        AddHandler TextBox.MouseDoubleClick, AddressOf TextBox_DoubleClick
 
 
         For Each f As FontFamily In FontFamily.Families
@@ -65,6 +78,7 @@ Public Class Manual
         Me.Dispose()
     End Sub
 
+
     Private Sub Save_Manual(sender As Object, e As EventArgs) Handles SaveToolStripMenuItem.Click
         SaveManual()
     End Sub
@@ -99,14 +113,28 @@ Public Class Manual
                 fReader.Close()
             End Using
         Catch ex As Exception ' We will end up here if the Manual hasn't been saved to the Config folder; So we load the included text file
-            ' MsgBox(ex.Message, vbCritical, "Error loading Manual")
+
             TextBox.Text = Manual() ' Get the Manual text
             SaveManual() ' and save it on the Config folder so we can edit it if required
         End Try
 
     End Sub
 
-    Private Sub TextBox_DoubleClick(sender As Object, e As MouseEventArgs) Handles TextBox.MouseDoubleClick
+    Private Sub TextBox_MouseClick(sender As Object, e As MouseEventArgs) ' Detects Mouse Click, and waits for a double click
+        clickTimer.Start()
+    End Sub
+
+    Private Sub OnSingleClickConfirmed(sender As Object, e As EventArgs) ' Single Click
+        clickTimer.Stop()
+        Lst_FontStyle.Visible = False
+        Lst_FontSize.Visible = False
+        Form1.Show()
+        Me.Dispose()
+    End Sub
+
+    Private Sub TextBox_DoubleClick(sender As Object, e As MouseEventArgs) 'MouseDoubleClick
+
+        clickTimer.Stop()
 
         If TextBox.ReadOnly = True Then
             TextBox.ReadOnly = False
@@ -123,10 +151,6 @@ Public Class Manual
         SaveManual()
     End Sub
 
-    Private Sub Mouse_Click(sender As Object, e As MouseEventArgs) Handles TextBox.MouseClick
-        Lst_FontStyle.Visible = False
-        Lst_FontSize.Visible = False
-    End Sub
     Private Sub BtnBold_Click(sender As Object, e As EventArgs) Handles Btn_Bold.Click
         Dim currentFont As Font = TextBox.SelectionFont
         If currentFont IsNot Nothing Then
@@ -149,11 +173,11 @@ Public Class Manual
             TextBox.SelectionFont = New Font(currentFont, newFontStyle)
         End If
     End Sub
-    Private Sub Btn_Font_Click(sender As Object, e As EventArgs)
-        Lst_FontStyle.Visible = True
-        Lst_FontStyle.SelectedItem = TextBox.Font
-        Lst_FontSize.Visible = True
-    End Sub
+    '  Private Sub Btn_Font_Click(sender As Object, e As EventArgs)
+    '      Lst_FontStyle.Visible = True
+    '      Lst_FontStyle.SelectedItem = TextBox.Font
+    '      Lst_FontSize.Visible = True
+    '   End Sub
     Private Sub Select_Font(sender As Object, e As EventArgs) Handles Lst_FontStyle.SelectedIndexChanged
         Try
             Dim newFont As String = Lst_FontStyle.SelectedItem
@@ -234,7 +258,7 @@ Stock Assessment has been written to handle assessing stock in locations such as
 However it will work for any business with similar requirements.  
 For example shops which sell fabric, and have to assess part bolts of cloth, 
 or engineering shops, which might sell part of a length of steel. 
-In fact any organisation which does regular stock takes, and needs to assess the value of stock sold.
+In fact any organization which does regular stock takes, and needs to assess the value of stock sold.
 
 When Stock Assessment is first loaded you will see a screen with just two items.
 FILE  and  MANUAL
@@ -250,7 +274,7 @@ The Department form opens, with the cursor on the Department Name field.
 Enter the name of the department. 
 In a hotel, this will be 'Pool Bar', or 'House Bar', or 'Public Bar', etc, but is can be anything which allows you to distinguish this  department from other departments you may have.
 
-By default the File Location is set to 'C:\ProgramData\Assessement\'.
+By default the File Location is set to 'C:\ProgramData\Assessment\'.
 You should leave it as this, unless you have a compelling reason to change it; for example if you wish to store the files on a server, or in the cloud.
 
 As this is the first Department,  a  blank Stock sheet will be created and saved.
@@ -281,7 +305,6 @@ You now have two choices,  ASSESSMENT, and DEPARTMENT. click ASSESSMENT, and you
 Note that there is just one file in the folder, which has the date of the last assessment as it's name. There will only ever by one, or on  rare occasions two, files in this folder. Every time the sheet is saved all files except the current one are moved to the Archive folder.  Click on this folder to see what files it contains.  You can reload any of these files to view them, however you cannot change a file which has been archived.  Instead, if you edit an archived file, it will be saved as a *.bak file, and the original will remain unchanged.
 
 Note: If the file name is today's date, it is assumed you are continuing a previously started assessment.  If the file name is a previous date, it is possible that you are either continuing a previous assessment, or starting a new one. In this case you are asked if you intend to start a New Assessment. Clicking Yes will roll the Assessment over, moving the Closing stock to the Opening stock, with the Issues and Closing fields blank.
-Note also: That you cannot roll over today's assessment. The only way to roll over is to wait until the next day, or the next week or month.
 
 You now have the stock sheet ready to either add more stock items, or start an assessment.
 
@@ -306,19 +329,20 @@ Note: The contents of the cell are not automatically deleted. You must delete th
 
 As you enter Issues and Closing stock the sheet is saved, and the stock sold and the Yield is calculated.  The total yield is shown at the bottom of the List. This should be compared with the return from the sale of the stock to determine if stock is being stolen, sold too cheaply, or if there is some other problem in the department.
 
-
 Additional features
 
 ZOOM. The form can be zoomed in or out to make it easier to read or enter data.
 The Manual can also be Zoomed.
 
-SAVING. By default the sheet will AutoSave as data is entered.  You can turn AutoSave off by clicking SETTINGS / AUTOSAVE OFF. You will then have the option to SAVE or SAVE AS. This could be useful if you want to, for example, save the sheet to a thumb drive or other location.
+SAVING. By default the sheet will AutoSave as data is entered.  You can turn AutoSave off by clicking SETTINGS / AUTOSAVE OFF. You will then have the option to SAVE or SAVE AS. This could be useful if you want to, for example, save the sheet to a USB drive or other location.
 
 If AutoSave is Off, and you try to exit without saving, you will be given the option to Save.
 
+You can set the main screen background if you wish, perhaps to display your company logo.  You can select any *.jpg or *.jpeg file as the background. Other file formats may be OK, but have not been tested.
+
 All settings in Stock Assessment are 'Sticky'. So if AutoSave is Off when you Exit, it will be Off when you resume. Also your Zoom settings are retained, and the form will be the same size when you resume.
 
-The last department assessed is the default department when you resume, and can be loaded by simply clicking Open on the File Dialog.
+The last department assessed is the default department when you resume, and can be loaded by simply clicking Open in the File Dialog.
 
 If you wish to assess a different department you should choose it from the File Dialog. This will then become the default department when you resume.
 
@@ -326,6 +350,7 @@ The Manual is also a rudimentary Text Editor.  Double clicking on the form will 
 
 You can send the manual to your default printer by clicking PRINT
 
+Close the Manual by either clicking FILE\EXIT, or Single clicking on the form.
 
 It has been shown that in a liquor sales scenario in particular, the only way to prevent loss of income is to do regular assessments.  The staff should be aware that assessments are done, and the results of each assessment should be communicated to the staff.  
 

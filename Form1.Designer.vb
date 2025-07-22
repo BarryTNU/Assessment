@@ -29,9 +29,12 @@ Partial Class Form1
         AssessmentToolStripMenuItem = New ToolStripMenuItem()
         ToolStripSeparator7 = New ToolStripSeparator()
         NewDepartmentToolStripMenuItem = New ToolStripMenuItem()
+        ToolStripSeparator1 = New ToolStripSeparator()
+        CloseToolStripMenuItem = New ToolStripMenuItem()
         SaveSeparator = New ToolStripSeparator()
         SaveToolStripMenuItem = New ToolStripMenuItem()
         SaveAsSeparator = New ToolStripSeparator()
+        SaveAsToolStripMenuItem = New ToolStripMenuItem()
         EditSeparator = New ToolStripSeparator()
         EditToolStripMenuItem = New ToolStripMenuItem()
         DoAssessSeparator = New ToolStripSeparator()
@@ -47,6 +50,7 @@ Partial Class Form1
         SettingsToolStripMenuItem = New ToolStripMenuItem()
         ToolStripSeparator12 = New ToolStripSeparator()
         AutoSaveToolStripMenuItem = New ToolStripMenuItem()
+        ScreenBackgroundToolStripMenuItem = New ToolStripMenuItem()
         ZoomToolStripMenuItem = New ToolStripMenuItem()
         ToolStripSeparator11 = New ToolStripSeparator()
         ZoomInToolStripMenuItem = New ToolStripMenuItem()
@@ -55,7 +59,7 @@ Partial Class Form1
         OpenFileDialog1 = New OpenFileDialog()
         SaveFileDialog1 = New SaveFileDialog()
         LV_Stock = New ListView()
-        SaveAsToolStripMenuItem = New ToolStripMenuItem()
+        AboutStockAssessmentToolStripMenuItem = New ToolStripMenuItem()
         MenuStrip1.SuspendLayout()
         SuspendLayout()
         ' 
@@ -74,7 +78,7 @@ Partial Class Form1
         ' 
         ' OpenToolStripMenuItem
         ' 
-        OpenToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ToolStripSeparator6, NewStockListToolStripMenuItem, SaveSeparator, SaveToolStripMenuItem, SaveAsSeparator, SaveAsToolStripMenuItem, EditSeparator, EditToolStripMenuItem, DoAssessSeparator, DoAssessmentToolStripMenuItem, ExitSeparator, ExitToolStripMenuItem})
+        OpenToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ToolStripSeparator6, NewStockListToolStripMenuItem, ToolStripSeparator1, CloseToolStripMenuItem, SaveSeparator, SaveToolStripMenuItem, SaveAsSeparator, SaveAsToolStripMenuItem, EditSeparator, EditToolStripMenuItem, DoAssessSeparator, DoAssessmentToolStripMenuItem, ExitSeparator, ExitToolStripMenuItem})
         OpenToolStripMenuItem.ForeColor = SystemColors.ActiveCaptionText
         OpenToolStripMenuItem.Name = "OpenToolStripMenuItem"
         OpenToolStripMenuItem.Size = New Size(49, 25)
@@ -110,6 +114,17 @@ Partial Class Form1
         NewDepartmentToolStripMenuItem.Size = New Size(172, 26)
         NewDepartmentToolStripMenuItem.Text = "Department"
         ' 
+        ' ToolStripSeparator1
+        ' 
+        ToolStripSeparator1.Name = "ToolStripSeparator1"
+        ToolStripSeparator1.Size = New Size(199, 6)
+        ' 
+        ' CloseToolStripMenuItem
+        ' 
+        CloseToolStripMenuItem.Name = "CloseToolStripMenuItem"
+        CloseToolStripMenuItem.Size = New Size(202, 26)
+        CloseToolStripMenuItem.Text = "Close"
+        ' 
         ' SaveSeparator
         ' 
         SaveSeparator.Name = "SaveSeparator"
@@ -126,6 +141,12 @@ Partial Class Form1
         ' 
         SaveAsSeparator.Name = "SaveAsSeparator"
         SaveAsSeparator.Size = New Size(199, 6)
+        ' 
+        ' SaveAsToolStripMenuItem
+        ' 
+        SaveAsToolStripMenuItem.Name = "SaveAsToolStripMenuItem"
+        SaveAsToolStripMenuItem.Size = New Size(202, 26)
+        SaveAsToolStripMenuItem.Text = "Save As"
         ' 
         ' EditSeparator
         ' 
@@ -204,7 +225,7 @@ Partial Class Form1
         ' SettingsToolStripMenuItem
         ' 
         SettingsToolStripMenuItem.Alignment = ToolStripItemAlignment.Right
-        SettingsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ToolStripSeparator12, AutoSaveToolStripMenuItem})
+        SettingsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ToolStripSeparator12, AutoSaveToolStripMenuItem, ScreenBackgroundToolStripMenuItem, AboutStockAssessmentToolStripMenuItem})
         SettingsToolStripMenuItem.ForeColor = SystemColors.ActiveCaptionText
         SettingsToolStripMenuItem.Name = "SettingsToolStripMenuItem"
         SettingsToolStripMenuItem.Size = New Size(84, 25)
@@ -214,13 +235,19 @@ Partial Class Form1
         ' ToolStripSeparator12
         ' 
         ToolStripSeparator12.Name = "ToolStripSeparator12"
-        ToolStripSeparator12.Size = New Size(182, 6)
+        ToolStripSeparator12.Size = New Size(262, 6)
         ' 
         ' AutoSaveToolStripMenuItem
         ' 
         AutoSaveToolStripMenuItem.Name = "AutoSaveToolStripMenuItem"
-        AutoSaveToolStripMenuItem.Size = New Size(185, 26)
+        AutoSaveToolStripMenuItem.Size = New Size(265, 26)
         AutoSaveToolStripMenuItem.Text = "Auto Save Off"
+        ' 
+        ' ScreenBackgroundToolStripMenuItem
+        ' 
+        ScreenBackgroundToolStripMenuItem.Name = "ScreenBackgroundToolStripMenuItem"
+        ScreenBackgroundToolStripMenuItem.Size = New Size(265, 26)
+        ScreenBackgroundToolStripMenuItem.Text = "Screen Background"
         ' 
         ' ZoomToolStripMenuItem
         ' 
@@ -270,26 +297,29 @@ Partial Class Form1
         LV_Stock.Location = New Point(0, 31)
         LV_Stock.Name = "LV_Stock"
         LV_Stock.OwnerDraw = True
+        LV_Stock.ShowItemToolTips = True
         LV_Stock.Size = New Size(912, 604)
         LV_Stock.TabIndex = 2
         LV_Stock.UseCompatibleStateImageBehavior = False
         LV_Stock.Visible = False
         ' 
-        ' SaveAsToolStripMenuItem
+        ' AboutStockAssessmentToolStripMenuItem
         ' 
-        SaveAsToolStripMenuItem.Name = "SaveAsToolStripMenuItem"
-        SaveAsToolStripMenuItem.Size = New Size(202, 26)
-        SaveAsToolStripMenuItem.Text = "Save As"
+        AboutStockAssessmentToolStripMenuItem.Name = "AboutStockAssessmentToolStripMenuItem"
+        AboutStockAssessmentToolStripMenuItem.Size = New Size(265, 26)
+        AboutStockAssessmentToolStripMenuItem.Text = "About Stock Assessment"
         ' 
         ' Form1
         ' 
         AutoScaleMode = AutoScaleMode.None
         AutoSize = True
         BackColor = SystemColors.GradientActiveCaption
+        BackgroundImageLayout = ImageLayout.Zoom
         ClientSize = New Size(912, 635)
         ControlBox = False
         Controls.Add(LV_Stock)
         Controls.Add(MenuStrip1)
+        DoubleBuffered = True
         Font = New Font("Segoe UI Black", 20.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         ForeColor = SystemColors.ActiveCaptionText
         FormBorderStyle = FormBorderStyle.FixedSingle
@@ -340,5 +370,9 @@ Partial Class Form1
     Friend WithEvents DoAssessSeparator As ToolStripSeparator
     Friend WithEvents ExitSeparator As ToolStripSeparator
     Friend WithEvents SaveAsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ScreenBackgroundToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ToolStripSeparator1 As ToolStripSeparator
+    Friend WithEvents CloseToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents AboutStockAssessmentToolStripMenuItem As ToolStripMenuItem
 
 End Class

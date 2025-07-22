@@ -2,9 +2,8 @@
 
 Imports System.IO
 Public Class New_StockSheet
-    ' Public DefaultFolder As String = Form1.DefaultLongPath ' Folder for all departments
 
-    Public DefaultConfigPath As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "AConfig\")
+    Public DefaultConfigPath As String = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + Path.DirectorySeparatorChar + "Assessment\"
     Public DefaultLongPath As String = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + Path.DirectorySeparatorChar + "Assessment\"
     Public FormConfigPath As String = DefaultConfigPath
     Public RootFolderPath As String = DefaultLongPath ' The folder for the Department names
@@ -14,10 +13,6 @@ Public Class New_StockSheet
     Public PathSet As Boolean = False
     Public DeptPath As String = ""
 
-
-
-
-    ' Public DefaultShortPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)) + Path.DirectorySeparatorChar
     Public LastAssessment As String = ""
     Public CurrentPath As String = ""
     Public NewDept As Boolean = False
@@ -313,24 +308,6 @@ Public Class New_StockSheet
         Form1.CurrentPath = CurrentPath
         Form1.SheetConfigPath = SheetConfigPath
 
-        'Get the configs for the Template sheet
-        Dim p As Integer = InStr(fpath, "csv")
-
-        Dim cPath As String = Mid(fpath, 1, p - 12) & "Archive\Config\Config.sys"
-
-        Using freader As New System.IO.StreamReader(cPath)
-            Do While Not freader.EndOfStream
-                Itemdetails = freader.ReadLine
-                Record_Field = Split(Itemdetails, ",") '  'Split the .CSV file into  fields
-            Loop
-            freader.Close()
-        End Using
-
-        If UBound(Record_Field) >= 3 Then ' We have loaded the department configs
-            NumberOfItems = Record_Field(1)
-            Autosave = Record_Field(2)
-            Zoom = Record_Field(3)
-        End If
 
         Form1.CheckFolderExists(SheetConfigPath)
 
@@ -382,6 +359,7 @@ Public Class New_StockSheet
         Form1.SheetConfigPath = SheetConfigPath
         Form1.ArchivePath = RootFolderPath & NewDeptName & "\Archive\"
         Form1.SetupSheet()
+        Form1.NewDepartment = True
         Form1.LoadStocklist(CurrentPath)
         Form1.LV_Stock.Show()
         Form1.EditCell(0, 0)

@@ -1,4 +1,5 @@
-﻿Imports System.IO
+﻿Imports System.DirectoryServices.ActiveDirectory
+Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Windows
 
@@ -6,7 +7,6 @@ Public Class Form1
 
     Public DefaultLongPath As String = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + Path.DirectorySeparatorChar + "Assessment\"
     Public DefaultConfigPath As String = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + Path.DirectorySeparatorChar + "Assessment\"
-    ' public DefaultConfigPath As String = FormconfigPath & "Config\"
 
     Public FormConfigPath As String = DefaultConfigPath
     Public RootFolderPath As String = "" ' The folder for the Department names
@@ -46,6 +46,7 @@ Public Class Form1
     Public AssessmentComplete As Boolean = False
     Public todayDate As String = DateTime.Now.ToString("dd-MM-yyyy")
     Public FileToPrint As String = ""
+    Public FormSize As String = ""
 
     Const VK_NUMLOCK As Integer = &H90
     Const KEYEVENTF_EXTENDEDKEY As UInteger = &H1
@@ -68,6 +69,7 @@ Public Class Form1
         Dim screenBounds As Rectangle = Screen.PrimaryScreen.WorkingArea
         Me.KeyPreview = True
         ForceNumLockOn() 'Turn NumLock on.  Needed to use the Number keypad
+        FormSize = Str(Me.Width) & "," & Str(Me.Height) ' Save the form size for use later
         Me.Width = LV_Stock.Width + 50 ' 
         Me.Height = LV_Stock.Height
         Me.Left = (screenBounds.Width - Me.Width) \ 2
@@ -77,6 +79,7 @@ Public Class Form1
         editBox.Visible = False
 
         AutoSave = True
+        CloseToolStripMenuItem.Visible = False
         SaveToolStripMenuItem.Visible = False
         SaveAsToolStripMenuItem.Visible = False
         DoAssessmentToolStripMenuItem.Visible = False
@@ -131,6 +134,7 @@ Public Class Form1
                     FolderPath = freader.ReadLine
                     Record_Field = Split(FolderPath, ",")
                 Loop
+                freader.Close()
             End Using
             If Record_Field(0) <> "" Then
                 RootFolderPath = Record_Field(0)
@@ -161,10 +165,19 @@ Public Class Form1
 
         Me.Text = RootFolderPath
 
+        Dim ImagePath As String = DefaultConfigPath & "Background.pic"
+        If File.Exists(ImagePath) Then ' There is a background image
+            Dim bmp As Bitmap
+            Using fs As New FileStream(ImagePath, FileMode.Open, FileAccess.Read)
+                bmp = New Bitmap(fs)
+                Me.BackgroundImage = bmp
+            End Using
+        End If
+
     End Sub
 
     Public Sub LoadSheetConfig(SheetConfigPath As String) ' Sets the Sheet Configuration
-        'Load the Sheet defaults
+        'Load the Sheet defaults'
         Dim itemdetails As String
         Dim Record_Field()
         Dim Auto_Save As String = ""
@@ -189,7 +202,7 @@ Public Class Form1
             'MsgBox(ex.Message, vbCritical, "Error loading Config file")
         End Try
 
-        If Auto_Save = "True" Then
+        If Auto_Save = "True" Or Auto_Save = "" Then
             AutoSave = True
         Else
             AutoSave = False
@@ -366,6 +379,7 @@ Public Class Form1
         Dim fPath As String = ""
         Dim NrFiles As Integer = 0
 
+
         DoAssessment = False ' cancel these flags
         EditStockSheet = False
 
@@ -374,6 +388,7 @@ Public Class Form1
         End If
 
         Try
+
             If Directory.Exists(DeptPath) Then
                 Dim fil As String() = Directory.GetFiles(DeptPath)
                 Dim fName As String = ""
@@ -452,7 +467,7 @@ Public Class Form1
 
         Me.Hide() ' Hide the main form while the Assessment is being loaded
 
-        If NewDepartment = True Or InStr(fPath, todayDate) = 0 Then GoTo CurrentAssessment
+        If NewDepartment = True Or InStr(fPath, "Archive") <> 0 Then GoTo CurrentAssessment
 
         response = MsgBox("This is a current Assessment." & Chr(13) & "Do you intend to start a New Assessment", vbYesNo Or vbQuestion Or vbDefaultButton2, "")
         If response = vbYes Then
@@ -470,7 +485,7 @@ Public Class Form1
         End If
 
 CurrentAssessment:
-        NewDepartment = False
+
         With LV_Stock
             NumberOfRows = 0
             Try
@@ -504,7 +519,6 @@ CurrentAssessment:
                             If NewAssessment = True And ClosingStock <> "" Then
                                 'We are opening a previous assessment, and starting a new one
                                 ' So Move closing stock to opening stock and clear Sold and Yield cells
-                                'Move closing stock to opening stock and clear Sold and Yield cells
                                 .Items(i).SubItems(3).Text = ClosingStock
                                 .Items(i).SubItems(4).Text = ""
                                 .Items(i).SubItems(5).Text = ""
@@ -531,6 +545,7 @@ CurrentAssessment:
                         End If
                     Loop
                     fReader.Close()
+                    NewDepartment = False
                 End Using
 
             Catch ex As Exception
@@ -578,11 +593,11 @@ CurrentAssessment:
         If i > 0 Then ' If we are editing a completed assessment then leave the original, and save it as a backup
             Dim TempPath As String = Replace(fPath, "csv", "bak")
             SaveSheet(TempPath) 'Save the sheet backup before we start editing it
-        Else 'we have loaded a previously completed assessment from the Root folder
+        Else 'we have loaded a previously completed assessment from the Root folder, so assumedly we are doing a new assessment.
             Dim q As Integer = InStr(fPath, "csv")
             Dim f_Name = Mid(fPath, q - 11)
-            FileCopy(fPath, DeptPath & "Archive\" & f_Name)
-            CurrentPath = DeptPath & todayDate & ".csv"
+            FileCopy(fPath, DeptPath & "Archive\" & f_Name) ' Copy the previous assessment to the Archive folder.
+            CurrentPath = DeptPath & todayDate & ".csv" ' And start a new one
 
             If InStr(CurrentPath, todayDate) = False Then
                 Rename(fPath, CurrentPath)
@@ -591,11 +606,12 @@ CurrentAssessment:
 
         Dim aName As String = Replace(CurrentPath, RootFolderPath, "")
         aName = Replace(aName, ".csv", "")
-        Me.Text = "Assessment for " & aName
+        Me.Text = "Assessment for " & aName ' Put the current department as the screen header
 
         NewSheet = False
         NewAssessment = False
         NewDepartment = False
+        CloseToolStripMenuItem.Visible = True
         ZoomToolStripMenuItem.Visible = True
         SettingsToolStripMenuItem.Visible = True
         PrintToolStripMenuItem.Visible = True
@@ -613,13 +629,14 @@ CurrentAssessment:
             Form_Zoom.ZoomIn(sender, e, Me, LV_Stock)
         Next
 
-        If DoAssessment = True Then
+        If DoAssessment = True Then ' Highlight the Stock Issues and closing fields
             EditCellText(0, 4)
-        ElseIf EditStockSheet = True Then
+        ElseIf EditStockSheet = True Then ' Highlight the Item Name & Details fields
             EditCellText(0, 0)
         End If
 
-        Me.Show() ' And show the main for after the assessment is loaded
+        Me.Show() ' And show the main form after the assessment is loaded
+        LV_Stock.Show()
 
     End Sub
 
@@ -691,10 +708,8 @@ CurrentAssessment:
                 LV_Stock.Items.Add(New ListViewItem(New String() {"", "", "", "", "", "", "", ""}))
                 NumberOfRows = LV_Stock.Items.Count
                 SaveSheetConfig(SheetConfigPath)
-
                 EditCellText(currentRow, currentCol)
             Else
-
                 EditCellText(currentRow, currentCol)
             End If
         End If
@@ -705,7 +720,7 @@ CurrentAssessment:
         Dim i As Integer = 0
         Dim f As Integer = 0
         Dim fPath As String = StocklistPath
-        Dim todayDate As String = DateTime.Now.ToString("dd-MM-yyyy") ' Format: dd-MM-yyyy_HH-mm (you can change the format as needed)
+        Dim todayDate As String = DateTime.Now.ToString("dd-MM-yyyy") ' Format: dd-MM-yyyy_HH-mm 
 
         If StocklistPath = "" Then Exit Sub
 
@@ -759,6 +774,7 @@ CurrentAssessment:
         Dim i As Integer
         Dim FileName As String
         Dim NumberOfItems As Integer = 0
+        Dim q As Boolean = False
 
         If fPath = "" Then Exit Sub
         If InStr(fPath, "Archive") <> 0 Then
@@ -779,13 +795,13 @@ CurrentAssessment:
                         Dim sValue As String = item.SubItems(2).Text ' Strip off the $  and , from the item value
                         Dim oldValue As String = sValue
                         sValue = Replace(sValue, "$", "")
-                sValue = Replace(sValue, ",", "")
+                        sValue = Replace(sValue, ",", "")
                         item.SubItems(2).Text = sValue
 
                         Dim sYield As String = item.SubItems(7).Text
                         Dim oldYield As String = sYield 'Save the old yield
                         sYield = Replace(sYield, "$", "") ' Strip off the $  and , from the item 
-                        sYield = Replace(sYield, ",", "")
+                        sYield = Replace(sYield, ",", "") ' Messes with the calculation. Also saving a comma is prohibited as the comma is the field separator
                         item.SubItems(7).Text = sYield
 
                         row = item.SubItems(0).Text 'This is the first item
@@ -798,17 +814,16 @@ CurrentAssessment:
                             row += "," & item.SubItems(i).Text
                         Next
 
-                        Dim q As Integer = InStr(row, "Total Yield")
+                        'Dim q As Integer = InStr(row, "Total Yield")
 
                         fwriter.WriteLine(row)
                         row = ""
                         NumberOfItems += 1
                         item.SubItems(2).Text = oldValue 'Put it back again
                         item.SubItems(7).Text = oldYield 'Put it back again
-
                     Next
 
-                    If NumberOfItems < 10 Then
+                    If NumberOfItems < 10 Then ' Put in a few blank lines to  make the screen look better
                         For i = NumberOfItems To 10
                             fwriter.WriteLine(",,,,,,,")
                         Next
@@ -826,30 +841,31 @@ CurrentAssessment:
                     DoAssessmentToolStripMenuItem.Visible = False
                 End If
 
-                i = InStr(fPath, ".bak")
-                If i <> 0 Then
-                    fPath = ArchivePath
+                q = InStr(fPath, "Archive")
+                If q = True Then
+                    Exit Sub
                 End If
 
             Catch ex As Exception
                 MsgBox(ex.Message, vbCritical, "Error writing Stock List")
             End Try
         End With
+
         Try
             If DoAssessment = True Then ' Move all files except the current assessment to the archive folder
                 Dim Spl() As String = Nothing
                 For Each file As String In Directory.GetFiles(DeptPath) ' delete all files except the current one
                     Spl = Split(file, "\")
                     FileName = Spl(UBound(Spl))
-                    FileCopy(file, ArchivePath)
-                    Dim q As Boolean = InStr(file, todayDate)
+                    q = InStr(FileName, todayDate)
                     If q = False Then
-                        Rename(file, todayDate & ".bak")
+                        FileCopy(DeptPath & FileName, ArchiveFolder & FileName) 'Copy the file to Archive
+                        Kill(DeptPath & FileName) 'Delete the file from the Department folder
                     End If
                 Next
             End If
         Catch ex As Exception
-            MsgBox(ex.Message, vbCritical, "Error deleting files")
+            MsgBox(ex.Message, vbCritical, "Error moving files")
         End Try
 
         PrintToolStripMenuItem.Visible = True
@@ -933,8 +949,6 @@ CurrentAssessment:
 
     End Sub
 
-
-
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     'Cell editing handlers
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -995,7 +1009,7 @@ CurrentAssessment:
             End If
         Next
         If Rowindex >= LastItem Then ' Ensure we can't add items too low in the list
-            Rowindex = LastItem '+ 1
+            Rowindex = LastItem
         End If
 
         Dim q As Integer = InStr(CurrentPath, "Archive")
@@ -1132,7 +1146,7 @@ CurrentAssessment:
     <DllImport("user32.dll")>
     Public Shared Sub keybd_event(ByVal bVk As Byte, ByVal bScan As Byte, ByVal dwFlags As UInteger, ByVal dwExtraInfo As UIntPtr)
     End Sub
-    Private Sub ForceNumLockOn()
+    Private Sub ForceNumLockOn() ' Needed to use number keypad
         Dim keyState As Boolean = (GetKeyState(VK_NUMLOCK) And 1) = 1
         If Not keyState Then
             ' Num Lock is OFF, simulate key press to turn it ON
@@ -1143,7 +1157,6 @@ CurrentAssessment:
 
     'Handle TAB key for moving between cells
     Protected Overrides Function ProcessCmdKey(ByRef msg As Message, keyData As Keys) As Boolean
-        ' Exit Function
 
         If editor IsNot Nothing Then
             If keyData = Keys.Tab Then
@@ -1171,14 +1184,14 @@ CurrentAssessment:
 
         If DoAssessment = True Then
             'numbers keys on top row
-            If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or e.KeyCode > 105 AndAlso kCode <> 190 Then ' Can only accept numbers and  and .
+            If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or kCode > 105 AndAlso kCode <> 110 Then ' Can only accept numbers and  and .
                 e.SuppressKeyPress = True
-            ElseIf kCode < 96 And kCode > 110 Then 'Keys on number keypad
-                e.SuppressKeyPress = True
+                ' ElseIf kCode < 96 And kCode > 110 Then 'Keys on number keypad
+                ' e.SuppressKeyPress = True
             End If
         ElseIf EditStockSheet = True Then
             If currentCol > 1 Then 'First 2 columns are AlphaNumeric
-                If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or e.KeyCode > 105 AndAlso kCode <> 190 Then ' Can only accept numbers and  and .
+                If kCode < 48 Or kCode > 57 AndAlso kCode < 96 Or kCode > 105 AndAlso kCode <> 110 Then ' Can only accept numbers and  and .
                     e.SuppressKeyPress = True
                 End If
             End If
@@ -1193,14 +1206,14 @@ CurrentAssessment:
             End If
 
             If editor.Text = "" And currentCol <> 1 And currentCol <> 3 Then
-                    Beep()
-                    e.SuppressKeyPress = True
-                    Exit Sub
-                End If
+                Beep()
                 e.SuppressKeyPress = True
-                nextRow = currentRow + 1
-                SaveAndMoveNext()
+                Exit Sub
             End If
+            e.SuppressKeyPress = True
+            nextRow = currentRow + 1
+            SaveAndMoveNext()
+        End If
 
     End Sub
 
@@ -1440,4 +1453,63 @@ CurrentAssessment:
         Manual.Show()
     End Sub
 
+    Private Sub ScreenBackground(sender As Object, e As EventArgs) Handles ScreenBackgroundToolStripMenuItem.Click
+        Dim fPath As String = ""
+
+        Try
+            OpenFileDialog1.InitialDirectory = "c:\"
+            OpenFileDialog1.Filter = "Photo Files (*.jpg)|*.jpg|All Files (*.*)| *.*"
+            OpenFileDialog1.FileName = "Choose a Background Image."
+            OpenFileDialog1.Multiselect = False
+            OpenFileDialog1.RestoreDirectory = True
+
+            Dim response = OpenFileDialog1.ShowDialog()
+            If response = vbOK Then
+                FileName = OpenFileDialog1.FileName
+                If System.IO.File.Exists(OpenFileDialog1.FileName) Then
+                    fPath = FileName
+                    ' Copy the Image to the Config folder
+                    Dim ImagePath As String = DefaultConfigPath & "Background.pic"
+                    FileCopy(fPath, ImagePath)
+                End If
+            End If
+
+            Dim BmMain = New Bitmap(fPath) 'Convert the file to a bitmap and  Display the results.
+            Me.BackgroundImage = BmMain
+
+        Catch ex As Exception
+            MsgBox(ex.Message, vbCritical, "Error loading Picture")
+        End Try
+
+        Close_Click(sender, e)
+
+    End Sub
+
+    Private Sub Close_Click(sender As Object, e As EventArgs) Handles CloseToolStripMenuItem.Click
+        LV_Stock.Hide()
+        AutoSave = True
+        ZoomToolStripMenuItem.Visible = False
+        CloseToolStripMenuItem.Visible = False
+        SaveToolStripMenuItem.Visible = False
+        SaveAsToolStripMenuItem.Visible = False
+        DoAssessmentToolStripMenuItem.Visible = False
+        EditToolStripMenuItem.Visible = False
+        SaveSeparator.Visible = False
+        SaveAsSeparator.Visible = False
+        EditSeparator.Visible = False
+        DoAssessSeparator.Visible = False
+        ExitSeparator.Visible = False
+        ToolStripSeparator6.Visible = False
+        PrintToolStripMenuItem.Visible = False
+        SettingsToolStripMenuItem.Visible = False
+        Dim Fields() = Split(FormSize, ",")
+        Me.Width = Fields(0) ' Reset the form size
+        Me.Height = Fields(1)
+        Me.Text = "Stock Assessment"
+    End Sub
+
+    Private Sub AboutStockAssessment_Click(sender As Object, e As EventArgs) Handles AboutStockAssessmentToolStripMenuItem.Click
+        Dim Message As String = "Please report any bugs or errors to the author." & vbCrLf & "CamSoft, Australia:  CamsoftAu@gmail.com"
+        MsgBox(Message, vbOKOnly, "Stock Assessment is Freeware.")
+    End Sub
 End Class
